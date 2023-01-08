@@ -122,5 +122,19 @@ class MoviesView(Resource):
         return '', 201
 
 
+@movies_ns.route("/<int:movies_id>")
+class MovieView(Resource):
+    def get(self, movies_id: int):
+        try:
+            movie = db.session.query(Movie).filter(Movie.id == movies_id).one()
+            # curl -X GET "http://127.0.0.1:5000/movies/2"
+            if not movie:
+                # curl -X GET "http://127.0.0.1:5000/movies/2222"
+                return "", 404
+            return movie_schema.dump(movie), 200
+        except Exception as e:
+            return str(e), 404
+
+
 if __name__ == '__main__':
     app.run(debug=True)
