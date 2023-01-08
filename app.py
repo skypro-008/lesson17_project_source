@@ -85,26 +85,41 @@ class MoviesView(Resource):
         all_movies = db.session.query(Movie)
 
         # Сбор параметров
-        page = int(request.args.get("page"))
-        page_size = int(request.args.get("page_size"))
-        director_id = int(request.args.get("director_id"))
-        genre_id = int(request.args.get("genre_id"))
+        page = request.args.get("page")
+        page_size = request.args.get("page_size")
+        director_id = request.args.get("director_id")
+        genre_id = request.args.get("genre_id")
 
         if director_id:
+            # curl -X GET "http://127.0.0.1:5000/movies/?director_id=3"
             all_movies = all_movies.filter(Movie.director_id == director_id)
 
         if genre_id:
+            # curl -X GET "http://127.0.0.1:5000/movies/?genre_id=17"
             all_movies = all_movies.filter(Movie.genre_id == genre_id)
 
-        if page_size:
-            all_movies = all_movies.limit(page_size)
-
-        if page:
-            all_movies = all_movies.offset(page*page_size)
+        if page_size and page:
+            # curl -X GET "http://127.0.0.1:5000/movies/?page=2&page_size=3"
+            all_movies = all_movies.limit(page_size).offset(int(page) * int(page_size))
 
         final_query = all_movies.all()
+        # curl -X GET "http://127.0.0.1:5000/movies/?page=0&page_size=3&genre_id=18&director_id=7"
 
-        return "", 404 if not final_query else movies_schema.dump(final_query), 200
+        if not final_query:
+            return "", 404
+            # curl -X GET "http://127.0.0.1:5000/movies/?page=1&page_size=3&genre_id=18&director_id=7"
+
+        return movies_schema.dump(final_query), 200
+
+    def post(self):
+        request_json = request.json
+        movie_ = movie_schema.load(request_json)
+        new_movie = Movie(**movie_)
+        with db.session.begin():
+            db.session.add(new_movie)
+        # curl -X POST "http://127.0.0.1:5000/movies/" -H "Content-Type: application/json" -d '{"title":"test",
+        # "description":"test","year":2001,"genre_id":17,"director_id":3}'
+        return '', 201
 
 
 if __name__ == '__main__':
