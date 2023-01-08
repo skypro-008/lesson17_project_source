@@ -1,13 +1,25 @@
-# app.py
+# main.py
 
 from flask import Flask, request
 from flask_restx import Api, Resource
 from flask_sqlalchemy import SQLAlchemy
 from marshmallow import Schema, fields
 
-app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///test.db'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+from app.config import Config
+
+
+def create_app(app_conf: Config) -> Flask:
+    application = Flask(__name__)
+
+    application.config.from_object(app_conf)
+    application.app_context().push()
+
+    return application
+
+
+app_config = Config()
+
+app = create_app(app_config)
 api = Api(app)
 db = SQLAlchemy(app)
 
