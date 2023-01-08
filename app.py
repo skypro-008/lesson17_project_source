@@ -25,8 +25,9 @@ class Movie(db.Model):
     year = db.Column(db.Integer)
     rating = db.Column(db.Float)
     genre_id = db.Column(db.Integer, db.ForeignKey("genre.id"))
-    genre = db.relationship("Genre")
     director_id = db.Column(db.Integer, db.ForeignKey("director.id"))
+
+    genre = db.relationship("Genre")
     director = db.relationship("Director")
 
 
@@ -71,6 +72,39 @@ directors_schema = DirectorSchema(many=True)
 
 genre_schema = GenreSchema()
 genres_schema = GenreSchema(many=True)
+
+
+@movies_ns.route('/')
+class MoviesView(Resource):
+    def get(self):
+        """Возвращает список всех фильмов, разделенный по страницам
+        Страница в параметре page.
+        Размер страницы в параметре page_size
+        Режиссер в параметре director_id.
+        Жанр в параметре genre_id"""
+        all_movies = db.session.query(Movie)
+
+        # Сбор параметров
+        page = int(request.args.get("page"))
+        page_size = int(request.args.get("page_size"))
+        director_id = int(request.args.get("director_id"))
+        genre_id = int(request.args.get("genre_id"))
+
+        if director_id:
+            all_movies = all_movies.filter(Movie.director_id == director_id)
+
+        if genre_id:
+            all_movies = all_movies.filter(Movie.genre_id == genre_id)
+
+        if page_size:
+            all_movies = all_movies.limit(page_size)
+
+        if page:
+            all_movies = all_movies.offset(page*page_size)
+
+        final_query = all_movies.all()
+
+        return "", 404 if not final_query else movies_schema.dump(final_query), 200
 
 
 if __name__ == '__main__':
