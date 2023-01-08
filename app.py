@@ -225,16 +225,16 @@ class DirectorView(Resource):
 @genres_ns.route("/")
 class GenresView(Resource):
     def get(self):
-        directors_all = db.session.query(Director).all()
-        return genres_schema.dump(directors_all), 200
+        genre_all = db.session.query(Genre).all()
+        return genres_schema.dump(genre_all), 200
 
     def post(self):
         request_json = request.json
-        director_ = director_schema.load(request_json)
-        new_director = Director(**director_)
+        genre_ = director_schema.load(request_json)
+        new_genre = Genre(**genre_)
 
         with db.session.begin():
-            db.session.add(new_director)
+            db.session.add(new_genre)
 
         return "", 201
 
@@ -276,7 +276,6 @@ class GenreView(Resource):
             return '', 204
         except Exception as e:
             return str(e), 404
-
 
 
 if __name__ == '__main__':
