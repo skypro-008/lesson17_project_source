@@ -8,8 +8,12 @@ from marshmallow import Schema, fields
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///test.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-
+api = Api(app)
 db = SQLAlchemy(app)
+
+movies_ns = api.namespace("movies")
+directors_ns = api.namespace("directors")
+genres_ns = api.namespace("genres")
 
 
 class Movie(db.Model):
