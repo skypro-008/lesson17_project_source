@@ -126,7 +126,7 @@ class MoviesView(Resource):
 class MovieView(Resource):
     def get(self, movies_id: int):
         try:
-            movie = db.session.query(Movie).filter(Movie.id == movies_id).one()
+            movie = db.session.query(Movie).get(movies_id)
             # curl -X GET "http://127.0.0.1:5000/movies/2"
             if not movie:
                 # curl -X GET "http://127.0.0.1:5000/movies/2222"
@@ -134,6 +134,149 @@ class MovieView(Resource):
             return movie_schema.dump(movie), 200
         except Exception as e:
             return str(e), 404
+
+    def put(self, movies_id: int):
+        try:
+            movie_select = db.session.query(Movie).filter(Movie.id == movies_id)
+            request_json = request.json
+            if not movie_select.first():
+                # curl -X PUT "http://127.0.0.1:5000/movies/11111111111" -H "Content-Type: application/json" -d '{"title":"test","description":"test","year":2001,"genre_id":17}'
+                return "", 404
+            movie_select.update(request_json)
+            db.session.commit()
+            # curl -X PUT "http://127.0.0.1:5000/movies/1" -H "Content-Type: application/json" -d '{"title":"test","description":"test","year":2001,"genre_id":17}'
+            return '', 204
+        except Exception as e:
+            return str(e), 404
+
+    def delete(self, movies_id: int):
+        try:
+            movie_select = db.session.query(Movie).filter(Movie.id == movies_id)
+
+            if not movie_select.first():
+                return "", 404
+            row_delete = movie_select.delete()
+
+            if row_delete != 1:
+                return "", 400
+            db.session.commit()
+            # curl -X DELETE "http://127.0.0.1:5000/movies/1"
+            return '', 204
+        except Exception as e:
+            return str(e), 404
+
+
+@directors_ns.route("/")
+class DirectorsView(Resource):
+    def get(self):
+        directors_all = db.session.query(Director).all()
+        return directors_schema.dump(directors_all), 200
+
+    def post(self):
+        request_json = request.json
+        director_ = director_schema.load(request_json)
+        new_director = Director(**director_)
+
+        with db.session.begin():
+            db.session.add(new_director)
+
+        return "", 201
+
+
+@directors_ns.route("/<int:director_id>")
+class DirectorView(Resource):
+    def get(self, director_id: int):
+        try:
+            director = db.session.query(Director).get(director_id)
+            if not director:
+                return "", 404
+            return movie_schema.dump(director), 200
+        except Exception as e:
+            return str(e), 404
+
+    def put(self, director_id: int):
+        try:
+            director_select = db.session.query(Director).filter(Director.id == director_id)
+            request_json = request.json
+            if not director_select.first():
+                return "", 404
+            director_select.update(request_json)
+            db.session.commit()
+            return '', 204
+        except Exception as e:
+            return str(e), 404
+
+    def delete(self, director_id: int):
+        try:
+            director_select = db.session.query(Director).filter(Director.id == director_id)
+
+            if not director_select.first():
+                return "", 404
+            row_delete = director_select.delete()
+
+            if row_delete != 1:
+                return "", 400
+            db.session.commit()
+            return '', 204
+        except Exception as e:
+            return str(e), 404
+
+
+@genres_ns.route("/")
+class GenresView(Resource):
+    def get(self):
+        directors_all = db.session.query(Director).all()
+        return genres_schema.dump(directors_all), 200
+
+    def post(self):
+        request_json = request.json
+        director_ = director_schema.load(request_json)
+        new_director = Director(**director_)
+
+        with db.session.begin():
+            db.session.add(new_director)
+
+        return "", 201
+
+
+@directors_ns.route("/<int:genre_id>")
+class GenreView(Resource):
+    def get(self, genre_id: int):
+        try:
+            genre = db.session.query(Genre).get(genre_id)
+            if not genre:
+                return "", 404
+            return genre_schema.dump(genre), 200
+        except Exception as e:
+            return str(e), 404
+
+    def put(self, genre_id: int):
+        try:
+            genre_select = db.session.query(Genre).filter(Genre.id == genre_id)
+            request_json = request.json
+            if not genre_select.first():
+                return "", 404
+            genre_select.update(request_json)
+            db.session.commit()
+            return '', 204
+        except Exception as e:
+            return str(e), 404
+
+    def delete(self, genre_id: int):
+        try:
+            genre_select = db.session.query(Genre).filter(Genre.id == genre_id)
+
+            if not genre_select.first():
+                return "", 404
+            row_delete = genre_select.delete()
+
+            if row_delete != 1:
+                return "", 400
+            db.session.commit()
+            return '', 204
+        except Exception as e:
+            return str(e), 404
+
 
 
 if __name__ == '__main__':
